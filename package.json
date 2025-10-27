@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A comprehensive dependency health monitoring tool to keep your projects secure and up-to-date.",
   "main": "index.js",
+  "bin": {
+    "dependable": "index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
