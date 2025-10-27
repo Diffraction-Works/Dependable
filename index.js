@@ -4,8 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-function getDependencies(projectPath) {
-  const packageJsonPath = path.join(projectPath, 'package.json');
+// Export exec for testing purposes
+module.exports.exec = exec;
+
+function getDependencies(projectPath, packageJsonFileName = 'package.json') {
+  const packageJsonPath = path.join(projectPath, packageJsonFileName);
   if (!fs.existsSync(packageJsonPath)) {
     console.error(`Error: package.json not found at ${packageJsonPath}`);
     return null;
@@ -26,8 +29,34 @@ function getDependencies(projectPath) {
 
 console.log("Dependable is running!");
 
-const projectRoot = process.cwd(); // Assuming Dependable is run from the project root
-const projectDependencies = getDependencies(projectRoot);
+if (require.main === module) {
+  const projectRoot = process.cwd();
+  getDependencies(projectRoot)
+    .then(projectDependencies => {
+      console.log('Project Dependencies:', projectDependencies);
+
+      runNpmAudit(projectRoot)
+        .then(auditResult => {
+          console.log('NPM Audit Results:', auditResult);
+
+          runNpmOutdated(projectRoot)
+            .then(outdatedResult => {
+              console.log('NPM Outdated Results:', outdatedResult);
+              const report = generateReport(projectDependencies, auditResult, outdatedResult);
+              console.log('\n' + report);
+            })
+            .catch(error => {
+              console.error('Failed to run npm outdated:', error);
+            });
+        })
+        .catch(error => {
+          console.error('Failed to run npm audit:', error);
+        });
+    })
+    .catch(error => {
+      console.error('Failed to get dependencies:', error);
+    });
+}
 
 function runNpmAudit(projectPath) {
   return new Promise((resolve, reject) => {
@@ -115,28 +144,9 @@ function generateReport(dependencies, auditResults, outdatedResults) {
   return report;
 }
 
-if (projectDependencies) {
-  console.log('Project Dependencies:', projectDependencies);
-
-  runNpmAudit(projectRoot)
-    .then(auditResult => {
-      console.log('NPM Audit Results:', auditResult);
-
-      runNpmOutdated(projectRoot)
-        .then(outdatedResult => {
-          console.log('NPM Outdated Results:', outdatedResult);
-          const report = generateReport(projectDependencies, auditResult, outdatedResult);
-          console.log('\n' + report);
-        })
-        .catch(error => {
-          console.error('Failed to run npm outdated:', error);
-        });
-    })
-    .catch(error => {
-      console.error('Failed to run npm audit:', error);
-    });
-} else {
-  console.log('Could not retrieve project dependencies.');
-}
-
-
+module.exports = {
+  getDependencies,
+  runNpmAudit,
+  runNpmOutdated,
+  generateReport,
+};
