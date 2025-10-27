@@ -55,6 +55,14 @@ To get started with Dependable, follow these steps:
     ```
     Dependable will then analyze your project's `package.json` for dependencies, check for security vulnerabilities, and identify outdated packages, presenting a comprehensive health report in your console.
 
+4.  **Output Formats (New!):
+    Dependable now supports different output formats. Use the `--format` flag to specify your desired output:
+    *   **Console (Default):** `node index.js`
+    *   **Markdown:** `node index.js --format markdown`
+    *   **JSON:** `node index.js --format json`
+
+    When using `markdown` or `json` formats, the output will be printed to `stdout`, allowing you to easily pipe it to a file or another command.
+
 ## Development
 
 ### Prerequisites
@@ -87,4 +95,5 @@ Contributions are welcome. Please feel free to submit a Pull Request.
 ## Contact
 
 Questions? Suggestions? Feel free to open an issue or reach out to the maintainers.
-
+
+

@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
+// Add a new module for argument parsing
+const minimist = require('minimist');
+
 // ANSI escape codes for colors
 const colors = {
   reset: '\x1b[0m',
@@ -33,46 +36,71 @@ function getDependencies(projectPath, packageJsonFileName = 'package.json') {
   }
 }
 
-// Main entry point for Dependable
+async function runDependable(projectRoot, outputFormat = 'console') {
+  if (outputFormat === 'console') {
+    console.log('Dependable is running!');
+  }
 
-console.log(`${colors.green}Dependable is running!${colors.reset}`);
-
-if (require.main === module) {
-  const projectRoot = process.cwd();
+  // const projectRoot = process.cwd(); // Removed this line
   const projectDependencies = getDependencies(projectRoot);
 
   if (projectDependencies) {
-    console.log('Project Dependencies:', projectDependencies);
+    if (outputFormat === 'console') {
+      console.log('Project Dependencies:', projectDependencies);
+    }
 
-    runNpmAudit(projectRoot)
-      .then(auditResult => {
-        const { total, critical, high, moderate, low } = auditResult.metadata.vulnerabilities;
-        let auditColor = colors.green;
-        if (critical > 0 || high > 0) {
-          auditColor = colors.red;
-        } else if (moderate > 0) {
-          auditColor = colors.yellow;
-        }
+    try {
+      const auditResult = await runNpmAudit(projectRoot);
+      const { total, critical, high, moderate, low } = auditResult.metadata.vulnerabilities;
+      let auditColor = colors.green;
+      if (critical > 0 || high > 0) {
+        auditColor = colors.red;
+      } else if (moderate > 0) {
+        auditColor = colors.yellow;
+      }
+      if (outputFormat === 'console') {
         console.log(`${auditColor}NPM Audit Summary: Total: ${total}, Critical: ${critical}, High: ${high}, Moderate: ${moderate}, Low: ${low}${colors.reset}`);
+      }
 
-        runNpmOutdated(projectRoot)
-          .then(outdatedResult => {
-            const outdatedCount = Object.keys(outdatedResult).length;
-            const outdatedColor = outdatedCount > 0 ? colors.yellow : colors.green;
-            console.log(`${outdatedColor}NPM Outdated Summary: Total outdated packages: ${outdatedCount}${colors.reset}`);
-            const report = generateReport(projectDependencies, auditResult, outdatedResult);
-            console.log('\n' + report);
-          })
-          .catch(error => {
-            console.error('Failed to run npm outdated:', error);
-          });
-      })
-      .catch(error => {
-        console.error('Failed to run npm audit:', error);
-      });
+      const outdatedResult = await runNpmOutdated(projectRoot);
+      const outdatedCount = Object.keys(outdatedResult).length;
+      const outdatedColor = outdatedCount > 0 ? colors.yellow : colors.green;
+      if (outputFormat === 'console') {
+        console.log(`${outdatedColor}NPM Outdated Summary: Total outdated packages: ${outdatedCount}${colors.reset}`);
+      }
+
+      const reportData = {
+        dependencies: projectDependencies,
+        audit: auditResult,
+        outdated: outdatedResult
+      };
+
+      switch (outputFormat) {
+        case 'json':
+          console.log(generateReport(reportData, 'json'));
+          break;
+        case 'markdown':
+          console.log(generateReport(reportData, 'markdown'));
+          break;
+        case 'console':
+        default:
+          console.log('\n' + generateReport(reportData, 'markdown'));
+          break;
+      }
+    } catch (error) {
+      console.error('Dependable encountered an error:', error);
+    }
   } else {
     console.error('Could not retrieve project dependencies. Exiting.');
   }
+}
+
+// Main entry point for Dependable
+if (require.main === module) {
+  const projectRoot = process.cwd();
+  const args = minimist(process.argv.slice(2));
+  const outputFormat = args.format || 'console'; // Default to console output
+  runDependable(projectRoot, outputFormat);
 }
 
 function runNpmAudit(projectPath) {
@@ -118,7 +146,12 @@ function runNpmOutdated(projectPath) {
   });
 }
 
-function generateReport(dependencies, auditResults, outdatedResults) {
+function generateReport(data, format = 'markdown') {
+  if (format === 'json') {
+    return JSON.stringify(data, null, 2);
+  }
+
+  const { dependencies, audit, outdated } = data;
   let report = '# Dependable Health Report\n\n';
 
   report += '## Project Dependencies\n';
@@ -132,9 +165,9 @@ function generateReport(dependencies, auditResults, outdatedResults) {
   report += '\n';
 
   report += '## Security Vulnerabilities (npm audit)\n';
-  if (auditResults && auditResults.advisories && Object.keys(auditResults.advisories).length > 0) {
-    for (const advisoryId in auditResults.advisories) {
-      const advisory = auditResults.advisories[advisoryId];
+  if (audit && audit.advisories && Object.keys(audit.advisories).length > 0) {
+    for (const advisoryId in audit.advisories) {
+      const advisory = audit.advisories[advisoryId];
       report += `### ${advisory.title} (Severity: ${advisory.severity})\n`;
       report += `- Package: ${advisory.module_name}\n`;
       report += `- Vulnerable Versions: ${advisory.vulnerable_versions}\n`;
@@ -148,9 +181,9 @@ function generateReport(dependencies, auditResults, outdatedResults) {
   report += '\n';
 
   report += '## Outdated Dependencies (npm outdated)\n';
-  if (outdatedResults && Object.keys(outdatedResults).length > 0) {
-    for (const dep in outdatedResults) {
-      const info = outdatedResults[dep];
+  if (outdated && Object.keys(outdated).length > 0) {
+    for (const dep in outdated) {
+      const info = outdated[dep];
       report += `- ${dep}: Current ${info.current}, Wanted ${info.wanted}, Latest ${info.latest}\n`;
     }
   } else {
@@ -166,4 +199,5 @@ module.exports = {
   runNpmAudit,
   runNpmOutdated,
   generateReport,
+  runDependable
 };
