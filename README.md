@@ -22,20 +22,26 @@ Dependable scans your project dependencies and provides detailed health reports 
 
 ## Roadmap
 
-- [ ] Core scanning engine
-- [ ] Security vulnerability detection
+- [x] Core scanning engine
+- [x] Security vulnerability detection
 - [ ] License compatibility analysis
 - [ ] Maintenance status tracking
 - [ ] Bundle size impact analysis
 - [ ] Update recommendation system
-- [ ] CLI interface
+- [x] CLI interface
 - [ ] Web dashboard
 - [ ] CI/CD integrations
 - [ ] Plugin system for custom rules
 
 ## Getting Started
 
-Coming soon. Dependable is under active development.
+To use Dependable, navigate to your project directory in the terminal and run:
+
+```bash
+node index.js
+```
+
+This will analyze your project's dependencies and generate a health report.
 
 ## Development
 
@@ -69,3 +75,4 @@ Contributions are welcome. Please feel free to submit a Pull Request.
 ## Contact
 
 Questions? Suggestions? Feel free to open an issue or reach out to the maintainers.
+
