@@ -35,13 +35,25 @@ Dependable scans your project dependencies and provides detailed health reports 
 
 ## Getting Started
 
-To use Dependable, navigate to your project directory in the terminal and run:
+To get started with Dependable, follow these steps:
 
-```bash
-node index.js
-```
+1.  **Download the Latest Release:**
+    *   Go to the [Releases page](https://github.com/your-username/dependable/releases) of this repository (replace `your-username/dependable` with the actual repository path).
+    *   Download the `Source code (zip)` or `Source code (tar.gz)` for the latest release (e.g., `v1.0.0`).
+    *   Extract the contents of the downloaded archive to your desired project directory.
 
-This will analyze your project's dependencies and generate a health report.
+2.  **Install Dependencies:**
+    Navigate to the extracted project directory in your terminal and install the necessary Node.js dependencies:
+    ```bash
+    npm install
+    ```
+
+3.  **Run Dependable:**
+    Execute the tool using Node.js:
+    ```bash
+    node index.js
+    ```
+    Dependable will then analyze your project's `package.json` for dependencies, check for security vulnerabilities, and identify outdated packages, presenting a comprehensive health report in your console.
 
 ## Development
 
@@ -75,4 +87,4 @@ Contributions are welcome. Please feel free to submit a Pull Request.
 ## Contact
 
 Questions? Suggestions? Feel free to open an issue or reach out to the maintainers.
-
+
