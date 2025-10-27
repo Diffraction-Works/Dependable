@@ -4,6 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
+// ANSI escape codes for colors
+const colors = {
+  reset: '\x1b[0m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  red: '\x1b[31m',
+};
+
 // Export exec for testing purposes
 module.exports.exec = exec;
 
@@ -27,35 +35,44 @@ function getDependencies(projectPath, packageJsonFileName = 'package.json') {
 
 // Main entry point for Dependable
 
-console.log("Dependable is running!");
+console.log(`${colors.green}Dependable is running!${colors.reset}`);
 
 if (require.main === module) {
   const projectRoot = process.cwd();
-  getDependencies(projectRoot)
-    .then(projectDependencies => {
-      console.log('Project Dependencies:', projectDependencies);
+  const projectDependencies = getDependencies(projectRoot);
 
-      runNpmAudit(projectRoot)
-        .then(auditResult => {
-          console.log('NPM Audit Results:', auditResult);
+  if (projectDependencies) {
+    console.log('Project Dependencies:', projectDependencies);
 
-          runNpmOutdated(projectRoot)
-            .then(outdatedResult => {
-              console.log('NPM Outdated Results:', outdatedResult);
-              const report = generateReport(projectDependencies, auditResult, outdatedResult);
-              console.log('\n' + report);
-            })
-            .catch(error => {
-              console.error('Failed to run npm outdated:', error);
-            });
-        })
-        .catch(error => {
-          console.error('Failed to run npm audit:', error);
-        });
-    })
-    .catch(error => {
-      console.error('Failed to get dependencies:', error);
-    });
+    runNpmAudit(projectRoot)
+      .then(auditResult => {
+        const { total, critical, high, moderate, low } = auditResult.metadata.vulnerabilities;
+        let auditColor = colors.green;
+        if (critical > 0 || high > 0) {
+          auditColor = colors.red;
+        } else if (moderate > 0) {
+          auditColor = colors.yellow;
+        }
+        console.log(`${auditColor}NPM Audit Summary: Total: ${total}, Critical: ${critical}, High: ${high}, Moderate: ${moderate}, Low: ${low}${colors.reset}`);
+
+        runNpmOutdated(projectRoot)
+          .then(outdatedResult => {
+            const outdatedCount = Object.keys(outdatedResult).length;
+            const outdatedColor = outdatedCount > 0 ? colors.yellow : colors.green;
+            console.log(`${outdatedColor}NPM Outdated Summary: Total outdated packages: ${outdatedCount}${colors.reset}`);
+            const report = generateReport(projectDependencies, auditResult, outdatedResult);
+            console.log('\n' + report);
+          })
+          .catch(error => {
+            console.error('Failed to run npm outdated:', error);
+          });
+      })
+      .catch(error => {
+        console.error('Failed to run npm audit:', error);
+      });
+  } else {
+    console.error('Could not retrieve project dependencies. Exiting.');
+  }
 }
 
 function runNpmAudit(projectPath) {
