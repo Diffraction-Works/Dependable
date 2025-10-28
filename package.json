@@ -1,6 +1,6 @@
 {
   "name": "dependable",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A comprehensive dependency health monitoring tool to keep your projects secure and up-to-date.",
   "main": "index.js",
   "bin": {
@@ -26,5 +26,6 @@
     "minimist": "^1.2.8"
   }
 }
+
 
 
