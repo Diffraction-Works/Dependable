@@ -15,7 +15,7 @@
     "url": "git+https://github.com/Diffraction-Works/Dependable.git"
   },
   "keywords": ["dependency management", "security", "vulnerability", "outdated packages", "npm", "javascript", "node.js", "health monitoring", "tool"],
-  "author": "",
+  "author": "Diffraction-Works",
   "license": "GPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/Diffraction-Works/Dependable/issues"
@@ -26,4 +26,5 @@
     "minimist": "^1.2.8"
   }
 }
+
 
