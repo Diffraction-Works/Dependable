@@ -16,7 +16,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/Diffraction-Works/Dependable/issues"
   },
@@ -26,4 +26,3 @@
     "minimist": "^1.2.8"
   }
 }
-
