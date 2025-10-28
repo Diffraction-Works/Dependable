@@ -97,8 +97,8 @@ async function runDependable(projectRoot, outputFormat = 'console') {
 
 // Main entry point for Dependable
 if (require.main === module) {
-  const projectRoot = process.cwd();
   const args = minimist(process.argv.slice(2));
+  const projectRoot = args.path || process.cwd();
   const outputFormat = args.format || 'console'; // Default to console output
   runDependable(projectRoot, outputFormat);
 }
